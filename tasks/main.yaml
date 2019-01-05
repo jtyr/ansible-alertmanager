@@ -1,0 +1,79 @@
+---
+
+- name: Test distribution
+  assert:
+    that: >
+      ansible_os_family == 'RedHat' or
+      ansible_os_family == 'Debian'
+  tags:
+    - alertmanager_assert
+
+- name: Add YUM repo
+  yum_repository:
+    name: prometheus
+    description: Prometheus YUM repo
+    baseurl: "{{ alertmanager_yumrepo_url }}"
+    gpgkey: "{{ alertmanager_yumrepo_gpgkey }}"
+  when: >
+    ansible_os_family == 'RedHat'
+  tags:
+    - alertmanager_pkg
+
+- name: Add APT key
+  apt_key:
+    url: "{{ alertmanager_apt_repo_key }}"
+    state: present
+  when: >
+    ansible_os_family == 'Debian'
+  tags:
+    - alertmanager_pkg
+
+- name: Add APT repository
+  apt_repository:
+    filename: alertmanager
+    repo: "{{ alertmanager_apt_repo_string }}"
+  when: >
+    ansible_os_family == 'Debian'
+  tags:
+    - alertmanager_pkg
+
+- name: Install Alertmanager package
+  package:
+    name: "{{ alertmanager_pkg }}"
+  notify:
+    - Restart Alertmanager service
+  tags:
+    - alertmanager_pkg
+
+- name: Create Alertmanager configuration file
+  template:
+    src: alertmanager.yml.j2
+    dest: "{{ alertmanager_config_file }}"
+  notify:
+    - Reload Alertmanager service
+  tags:
+    - alertmanager_config
+
+- name: Create Alertmanager default service file
+  template:
+    src: alertmanager.default.j2
+    dest: "{{ alertmanager_default_file }}"
+  notify:
+    - Restart Alertmanager service
+  tags:
+    - alertmanager_config
+
+- name: Make sure Alertmanager service is enabled
+  service:
+    name: "{{ alertmanager_service }}"
+    enabled: yes
+  tags:
+    - alertmanager_service
+
+- name: Make sure Alertmanager service is running
+  service:
+    name: "{{ alertmanager_service }}"
+    state: started
+  register: alertmanager_service_started
+  tags:
+    - alertmanager_service

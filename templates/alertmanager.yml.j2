@@ -1,0 +1,3 @@
+{{ ansible_managed | comment }}
+
+{{ alertmanager_config | encode_yaml(convert_bools=true, convert_nums=true) }}

@@ -1,0 +1,23 @@
+---
+
+- name: Restart Alertmanager service
+  service:
+    name: "{{ alertmanager_service }}"
+    state: restarted
+  register: alertmanager_service_restarted
+  when: >
+    alertmanager_service_started is not defined or
+    not alertmanager_service_started.changed
+
+- name: Reload Alertmanager service
+  service:
+    name: "{{ alertmanager_service }}"
+    state: reloaded
+  when: >
+    (
+      alertmanager_service_started is not defined or
+      not alertmanager_service_started.changed
+    ) and (
+      alertmanager_service_restarted is not defined or
+      not alertmanager_service_restarted.changed
+    )
