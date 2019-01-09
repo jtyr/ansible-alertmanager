@@ -100,16 +100,19 @@ List of variables used by the role:
 
 ```yaml
 # YUM repo URL
-alertmanager_yumrepo_url: "{{
+alertmanager_yum_repo_url: "{{
   prometheusio_yum_repo_url |
-  default('https://packagecloud.io/prometheus-rpm/release/el/' ~ ansible_distribution_major_version ~ '/$basearch/') }}"
+  default('https://packagecloud.io/prometheus-rpm/release/el/' ~ ansible_facts.distribution_major_version ~ '/$basearch/') }}"
 
 # YUM repo GPG key URL
-alertmanager_yumrepo_gpgkey: "{{
+alertmanager_yum_repo_gpgkey: "{{
   prometheusio_yum_repo_gpgkey |
   default([
     'https://packagecloud.io/prometheus-rpm/release/gpgkey',
     'https://raw.githubusercontent.com/lest/prometheus-rpm/master/RPM-GPG-KEY-prometheus-rpm']) }}"
+
+# Additional YUM repo params
+alertmanager_yum_repo_params: {}
 
 # APT repo string
 alertmanager_apt_repo_string: "{{
@@ -121,10 +124,13 @@ alertmanager_apt_repo_key: "{{
   prometheusio_apt_repo_key |
   default('https://packagecloud.io/prometheus-deb/release/gpgkey') }}"
 
+# Additional APT repo params
+alertmanager_apt_repo_params: {}
+
 # Package to be installed (explicit version can be specified here)
 alertmanager_pkg: "{{
   'alertmanager'
-    if ansible_os_family == 'RedHat'
+    if ansible_facts.os_family == 'RedHat'
     else
   'prometheus-alertmanager' }}"
 
@@ -147,8 +153,8 @@ alertmanager_default__custom: {}
 
 # Final service defaults
 alertmanager_default: "{{
-  alertmanager_default__default.update(alertmanager_default__custom) }}{{
-  alertmanager_default__default }}"
+  alertmanager_default__default | combine(
+  alertmanager_default__custom) }}"
 
 
 # Location of the main config file

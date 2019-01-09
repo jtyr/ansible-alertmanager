@@ -3,8 +3,8 @@
 - name: Test distribution
   assert:
     that: >
-      ansible_os_family == 'RedHat' or
-      ansible_os_family == 'Debian'
+      ansible_facts.os_family == 'RedHat' or
+      ansible_facts.os_family == 'Debian'
   tags:
     - alertmanager_assert
 
@@ -12,10 +12,11 @@
   yum_repository:
     name: prometheus
     description: Prometheus YUM repo
-    baseurl: "{{ alertmanager_yumrepo_url }}"
-    gpgkey: "{{ alertmanager_yumrepo_gpgkey }}"
+    baseurl: "{{ alertmanager_yum_repo_url }}"
+    gpgkey: "{{ alertmanager_yum_repo_gpgkey }}"
+  args: "{{ alertmanager_yum_repo_params }}"
   when: >
-    ansible_os_family == 'RedHat'
+    ansible_facts.os_family == 'RedHat'
   tags:
     - alertmanager_pkg
 
@@ -24,7 +25,7 @@
     url: "{{ alertmanager_apt_repo_key }}"
     state: present
   when: >
-    ansible_os_family == 'Debian'
+    ansible_facts.os_family == 'Debian'
   tags:
     - alertmanager_pkg
 
@@ -32,8 +33,9 @@
   apt_repository:
     filename: alertmanager
     repo: "{{ alertmanager_apt_repo_string }}"
+  args: "{{ alertmanager_apt_repo_params }}"
   when: >
-    ansible_os_family == 'Debian'
+    ansible_facts.os_family == 'Debian'
   tags:
     - alertmanager_pkg
 
