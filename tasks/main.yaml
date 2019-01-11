@@ -65,6 +65,26 @@
   tags:
     - alertmanager_config
 
+- name: Make sure the template path exists
+  file:
+    path: "{{ alertmanager_templates_path ~ '/' ~ item.key | dirname }}"
+    state: directory
+  with_dict: "{{ alertmanager_templates }}"
+  tags:
+    - alertmanager_config
+    - alertmanager_template
+
+- name: Create template files
+  template:
+    src: template.j2
+    dest: "{{ alertmanager_templates_path }}/{{ item.key }}.tmpl"
+  with_dict: "{{ alertmanager_templates }}"
+  notify:
+    - Reload Alertmanager service
+  tags:
+    - alertmanager_config
+    - alertmanager_template
+
 - name: Make sure Alertmanager service is enabled
   service:
     name: "{{ alertmanager_service }}"

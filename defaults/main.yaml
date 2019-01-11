@@ -151,3 +151,10 @@ alertmanager_config__custom: {}
 alertmanager_config: "{{
   alertmanager_config__default | combine(
   alertmanager_config__custom) }}"
+
+
+# Base directory for the template files
+alertmanager_templates_path: /etc/prometheus/templates
+
+# List of templates (see README.md for more details)
+alertmanager_templates: {}

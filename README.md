@@ -58,6 +58,34 @@ Examples
           - api_url: https://hooks.slack.com/services/123456789/987654321/abcdefghijklmnopqrstuvwxyz
             channel: mychannel
             send_resolved: yes
+            # Use template file to customize the message text (see bellow)
+            text: ;;;{% raw %}'{{ template "slack.custom.text" . }}'{% endraw %}
+    # Create template files
+    alertmanager_templates:
+      # This is the name of the template file
+      # (We need double 'raw' escaping because the variable is templated twice,
+      # once when read from the playbook, second time when used in the loop.)
+      custom: |-
+        {{ '{% raw -%}' }}{% raw -%}
+        {{ define "slack.custom.text" -}}
+          {{ range .Alerts -}}
+            {{ .Annotations.summary }}{{ "\n\n" -}}
+            *Labels: *
+            {{- range $index, $label := .Labels.SortedPairs -}}
+              {{ if (eq $index 0) -}}
+                {{ " " -}}
+              {{ else -}}
+                {{ ", " -}}
+              {{ end -}}
+              `{{ $label.Name }}={{ $label.Value }}`
+            {{- end -}}
+          {{ end -}}
+        {{ end }}
+        {%- endraw %}{{ '{%- endraw %}' }}
+    # Make the content of the template file available in the configuration file
+    alertmanager_config__custom:
+      templates:
+        - "{{ alertmanager_templates_path }}/custom.tmpl"
   roles:
     - alertmanager
 
@@ -250,6 +278,13 @@ alertmanager_config__custom: {}
 alertmanager_config: "{{
   alertmanager_config__default | combine(
   alertmanager_config__custom) }}"
+
+
+# Base directory for the template files
+alertmanager_templates_path: /etc/prometheus/templates
+
+# List of templates (see README.md for more details)
+alertmanager_templates: {}
 ```
 
 
